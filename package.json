@@ -1,0 +1,16 @@
+{
+  "name": "tree-view-finder",
+  "main": "./lib/tree-view-finder",
+  "version": "0.0.0",
+  "description": "A short description of your package",
+  "activationCommands": {
+    "atom-workspace": "tree-view-finder:toggle"
+  },
+  "repository": "https://github.com/atom/tree-view-finder",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=0.174.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}
