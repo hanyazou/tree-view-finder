@@ -6,14 +6,13 @@
 
 @finder-tool-height: 27px;
 
-.with-finder.tree-view-scroller {
-  -webkit-transform: translate(0, @finder-tool-height);
-  height: calc(~'100% - @{finder-tool-height}');
+atom-workspace atom-workspace-axis.tree-view-finder-fit {
+  display: none;
 }
 
 tree-view-finder-tool {
   display: -webkit-flex;
-  position: absolute;
+  overflow: visible;
 
   .btn-group {
 

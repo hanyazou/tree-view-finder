@@ -19,24 +19,22 @@ class FinderTool extends HTMLElement
     @subscriptions = new CompositeDisposable
 
     workspaceElement = atom.views.getView(atom.workspace)
-    @treeViewResizer = workspaceElement.querySelector('.tree-view-resizer')
     @treeViewScroller = workspaceElement.querySelector('.tree-view-scroller')
 
     @subscriptions.add @subscribeTo @finderToolElement, '.btn',
       'click': (e) =>
         console.log "finder-tool: clieck:", e.target.id, e
+    @finderToolElement.style.width = '624px'
     @name.style.width = '190px'
     @size.style.width = '80px'
     @mdate.style.width = '250px'
 
   attach: ->
-    @treeViewResizer.insertBefore(this, @treeViewResizer.firstChild)
-    @treeViewScroller.classList.add('with-finder')
+    @treeViewScroller.insertBefore(this, @treeViewScroller.firstChild)
     @attached = true
 
   detach: ->
-    @treeViewResizer.removeChild(this) if @parentNode? and @parentNode is @treeViewResizer
-    @treeViewScroller.classList.remove('with-finder')
+    @treeViewScroller.removeChild(this)
     @attached = false
 
   destroy: ->

@@ -54,6 +54,9 @@ module.exports = TreeViewFinder =
     @visible = true
     @finderTool.attach()
 
+    workspaceElement = atom.views.getView(atom.workspace)
+    workspaceElement.querySelector('atom-workspace-axis.vertical').classList.add('tree-view-finder-fit')
+
     @fileInfo.show()
     @fitWidth()
     window.onresize = () =>
@@ -64,6 +67,8 @@ module.exports = TreeViewFinder =
     console.log 'tree-view-finder: hide()' if @debug
     @visible = false
     @fileInfo.hide()
+    workspaceElement = atom.views.getView(atom.workspace)
+    workspaceElement.querySelector('atom-workspace-axis.vertical').classList.remove('tree-view-finder-fit')
     @finderTool.detach()
     @unfitWidth()
 
