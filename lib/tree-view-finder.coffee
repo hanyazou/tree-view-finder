@@ -26,12 +26,12 @@ module.exports = TreeViewFinder =
     @subscriptions.add atom.config.onDidChange 'tree-view-finder.debug', =>
       debug = atom.config.get('tree-view-finder.debug')
 
-    atom.packages.activatePackage('tree-view').then (treeViewPkg) =>
-      console.log 'tree-view-finder: create TreeView' if @debug
-      @treeView = treeViewPkg.mainModule.createView()
-      @fileInfo.initialize(@treeView)
-      @alterTreeView()
-      @handleEvents()
+    treeViewPkg = atom.packages.getLoadedPackage('tree-view')
+    console.log 'tree-view-finder: create TreeView' if @debug
+    @treeView = treeViewPkg.mainModule.createView()
+    @fileInfo.initialize(@treeView)
+    @alterTreeView()
+    @handleEvents()
 
   deactivate: ->
     console.log 'tree-view-finder: deactivate' if @debug
