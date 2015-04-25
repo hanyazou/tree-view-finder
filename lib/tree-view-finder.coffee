@@ -14,7 +14,7 @@ module.exports = TreeViewFinder =
   activate: (state) ->
     console.log 'tree-view-finder: activate' if @debug
     @finderTool = new FinderTool()
-    @finderTool.initialize()
+    @finderTool.initialize(this)
     @fileInfo = new FileInfo()
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
@@ -43,7 +43,7 @@ module.exports = TreeViewFinder =
 
   toggle: ->
     console.log 'TreeViewFinder was toggled!'
-
+    
     if @visible
       @hide();
     else

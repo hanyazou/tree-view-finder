@@ -5,6 +5,7 @@
 @import "ui-variables";
 
 @finder-tool-height: 27px;
+@finder-tool-rsz-width: 9px;
 
 atom-workspace atom-workspace-axis.tree-view-finder-fit {
   display: none;
@@ -16,8 +17,20 @@ tree-view-finder-tool {
 
   .btn-group {
 
-    .btn {
+    .btn.rsz {
+      border-color: red;
+      border-width: 1px;
+      border-style: none;
+      box-shadow: none;
 
+      z-index: 3;
+      background: none;
+      cursor: col-resize;
+
+      width: @finder-tool-rsz-width;
+      padding: 0px;
+      margin-left: calc(~'-@{finder-tool-rsz-width}/2');
+      margin-right:  calc(~'-@{finder-tool-rsz-width}/2');
     }
 
     .disable {

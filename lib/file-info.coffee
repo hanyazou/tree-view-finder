@@ -1,10 +1,6 @@
 {requirePackages} = require 'atom-utils'
 fs = require 'fs-plus'
 
-nameWidth = 300
-sizeWidth = 80
-dateWidth = 250
-
 module.exports =
 class FileInfo
   visible: false
@@ -55,31 +51,25 @@ class FileInfo
           stat = fs.statSyncNoException(name.dataset.path)
 
           padding = document.createElement('span')
-          padding.style.marginRight = nameWidth - name.getBoundingClientRect().left - name.getBoundingClientRect().width + 'px'
           padding.classList.add('file-info-added')
-          name.appendChild(padding)
+          padding.classList.add('file-info-padding')
+          name.parentNode.appendChild(padding)
 
           size = document.createElement('span')
           size.textContent = stat.size
           size.style.display = 'inline-block'
-          size.style.width = sizeWidth + 'px'
           size.classList.add('file-info-added')
-          name.appendChild(size)
+          size.classList.add('file-info-size')
+          name.parentNode.appendChild(size)
 
           date = document.createElement('span')
           date.textContent = stat.mtime
           date.style.display = 'inline-block'
-          date.style.width = dateWidth+ 'px'
           date.classList.add('file-info-added')
-          name.appendChild(date)
+          date.classList.add('file-info-mdate')
+          name.parentNode.appendChild(date)
 
           if @debug
-            end = document.createElement('span')
-            end.textContent = ' ; '
-            end.style.display = 'inline-block'
-            end.style.width = '10px'
-            name.appendChild(end)
-
             #name.style.borderStyle = 'solid'
             #name.style.borderWidth = '1px'
             #padding.style.borderStyle = 'solid'
@@ -94,3 +84,24 @@ class FileInfo
             date.style.backgroundColor = '#A0A0A0'
             #end.style.borderStyle = 'solid'
             #end.style.borderWidth = '1px'
+      console.log 'file-info: add...done' if @debug
+      @updateWidth()
+
+  updateWidth: (nameWidth = @nameWidth, sizeWidth = @sizeWidth, mdateWidth = @mdateWidth) ->
+    console.log 'file-info: updateWidth', nameWidth, sizeWidth, mdateWidth if @debug
+    @nameWidth = nameWidth
+    @sizeWidth = sizeWidth
+    @mdateWidth = mdateWidth
+    console.log 'file-info: updateWidth' if @debug
+    if @treeView and @visible
+      fileEntries = @treeView.element.querySelectorAll '.file.entry.list-item'
+      for fileEntry in fileEntries
+        name = fileEntry.querySelector 'span.name'
+        [padding] = name.parentNode.querySelectorAll '.file-info-padding'
+        [size] = name.parentNode.querySelectorAll '.file-info-size'
+        [mdate] = name.parentNode.querySelectorAll '.file-info-mdate'
+
+        padding.style.marginRight = @nameWidth - name.getBoundingClientRect().left - name.getBoundingClientRect().width + 'px'
+        console.log 'updateWidth:', padding.style.marginRight, @nameWidth, name.getBoundingClientRect().left, name.getBoundingClientRect().width + 'px' if @debug
+        size.style.width = @sizeWidth + 'px'
+        mdate.style.width = @mdateWidth+ 'px'
