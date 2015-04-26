@@ -38,6 +38,7 @@ class FileInfo
     elements = @treeView.element.querySelectorAll '.file.entry.list-item .file-info'
     for element in elements
       element.classList.remove('file-info')
+      element.classList.remove('file-info-debug') if @debug
     elements = @treeView.element.querySelectorAll '.file.entry.list-item .file-info-added'
     for element in elements
       element.remove()
@@ -49,42 +50,30 @@ class FileInfo
         name = fileEntry.querySelector 'span.name'
         if not name.classList.contains('file-info')
           name.classList.add('file-info')
+          name.classList.add('file-info-debug') if @debug
           stat = fs.statSyncNoException(name.dataset.path)
 
           padding = document.createElement('span')
+          padding.textContent = '\u00A0'  # XXX
           padding.classList.add('file-info-added')
           padding.classList.add('file-info-padding')
+          padding.classList.add('file-info-debug') if @debug
           name.parentNode.appendChild(padding)
 
           size = document.createElement('span')
           size.textContent = stat.size
-          size.style.display = 'inline-block'
           size.classList.add('file-info-added')
           size.classList.add('file-info-size')
+          size.classList.add('file-info-debug') if @debug
           name.parentNode.appendChild(size)
 
           date = document.createElement('span')
           date.textContent = stat.mtime
-          date.style.display = 'inline-block'
           date.classList.add('file-info-added')
           date.classList.add('file-info-mdate')
+          date.classList.add('file-info-debug') if @debug
           name.parentNode.appendChild(date)
 
-          if @debug
-            #name.style.borderStyle = 'solid'
-            #name.style.borderWidth = '1px'
-            #padding.style.borderStyle = 'solid'
-            #padding.style.borderWidth = '1px'
-            padding.textContent = '#'
-            padding.style.backgroundColor = 'red'
-            #size.style.borderStyle = 'solid'
-            #size.style.borderWidth = '1px'
-            size.style.backgroundColor = '#808080'
-            #date.style.borderStyle = 'solid'
-            #date.style.borderWidth = '1px'
-            date.style.backgroundColor = '#A0A0A0'
-            #end.style.borderStyle = 'solid'
-            #end.style.borderWidth = '1px'
       console.log 'file-info: add...done' if @debug
       @updateWidth()
 
@@ -102,7 +91,7 @@ class FileInfo
         [size] = name.parentNode.querySelectorAll '.file-info-size'
         [mdate] = name.parentNode.querySelectorAll '.file-info-mdate'
 
-        padding.style.marginRight = @nameWidth - name.getBoundingClientRect().left - name.getBoundingClientRect().width + 'px'
+        padding.style.width = @nameWidth - name.getBoundingClientRect().left - name.getBoundingClientRect().width + 'px'
         console.log 'updateWidth:', padding.style.marginRight, @nameWidth, name.getBoundingClientRect().left, name.getBoundingClientRect().width + 'px' if @debug
         size.style.width = @sizeWidth + 'px'
         mdate.style.width = @mdateWidth+ 'px'
