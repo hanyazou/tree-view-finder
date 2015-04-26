@@ -6,6 +6,9 @@ class FinderTool extends HTMLElement
   SpacePenDSL.includeInto(this)
 
   debug: false
+  nameWidth: 200
+  sizeWidth: 80
+  mdateWidth: 180
 
   @content: ->
     @tag 'atom-panel', class: 'tree-view-finder-tool tool-panel', =>
@@ -21,17 +24,28 @@ class FinderTool extends HTMLElement
         @div outlet: 'mdate-rsz', class: 'btn rsz', id: 'mdate-rsz', ''
 
   initialize: (treeViewFinder) ->
-    console.log "finder-tool: initialize" if @debug
+    console.log "finder-tool: initialize", treeViewFinder if @debug
     @treeViewFinder = treeViewFinder
     @subscriptions = new CompositeDisposable
 
     @subscriptions.add @subscribeTo @toolBar, '.btn',
       'click': (e) =>
         console.log "finder-tool: click:", e.target.id, e if @debug
-    @toolBar.style.width = '624px'
-    @name.style.width = '190px'
-    @size.style.width = '80px'
-    @mdate.style.width = '250px'
+
+    state = treeViewFinder?.state?.finderTool
+    if state
+      console.log 'finde-tool: initiliaze: state =', state if @debug
+      if state.nameWidth
+        @nameWidth = state.nameWidth
+      if state.sizeWidth
+        @sizeWidth = state.sizeWidth
+      if state.mdateWidth
+        @mdateWidth = state.mdateWidth
+      
+    @name.style.width = @nameWidth + 'px'
+    @size.style.width = @sizeWidth + 'px'
+    @mdate.style.width = @mdateWidth + 'px'
+    @toolBar.style.width = @nameWidth + @sizeWidth + @mdateWidth + 200 + 'px'
 
     drag = null
 
@@ -70,11 +84,21 @@ class FinderTool extends HTMLElement
         @updateFileInfo()
         drag = null
 
+  serialize: ->
+    return {} if not @attached
+    nameWidth: @nameWidth
+    sizeWidth: @sizeWidth
+    mdateWidth: @mdateWidth
+
   updateFileInfo: ->
+    @nameWidth = @size.offsetLeft - @name.offsetLeft
+    @sizeWidth = @mdate.offsetLeft - @size.offsetLeft
+    @mdateWidth = @mdate.offsetWidth
+    console.log 'finder-tool: updateFileInfo: ', @nameWidth, @sizeWidth, @mdateWidth if @debug
     @treeViewFinder.fileInfo.updateWidth(
-      @name.offsetLeft + @name.offsetWidth,
-      @size.offsetWidth,
-      @mdate.offsetWidth)
+      @name.offsetLeft + @nameWidth,
+      @sizeWidth,
+      @mdateWidth)
 
   attach: ->
     console.log "finder-tool: attach" if @debug

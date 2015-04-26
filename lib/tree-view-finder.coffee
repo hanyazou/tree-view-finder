@@ -30,7 +30,7 @@ module.exports = TreeViewFinder =
   xorhandler: null
   isFit: false
 
-  activate: (state) ->
+  activate: (@state) ->
     @finderTool = new FinderTool()
     @fileInfo = new FileInfo()
     @updateDebugFlags()
@@ -64,11 +64,13 @@ module.exports = TreeViewFinder =
 
   deactivate: ->
     console.log 'tree-view-finder: deactivate' if @debug
+    @hide()
     @subscriptions.dispose()
     @finderTool.destroy()
 
   serialize: ->
-    #treeViewFinderViewState: @treeViewFinderView.serialize()
+    console.log 'tree-view-finder: serialize' if @debug
+    finderTool: @finderTool.serialize()
 
   toggle: ->
     if @visible
