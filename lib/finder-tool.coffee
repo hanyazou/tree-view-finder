@@ -45,20 +45,23 @@ class FinderTool extends HTMLElement
     @name.style.width = @nameWidth + 'px'
     @size.style.width = @sizeWidth + 'px'
     @mdate.style.width = @mdateWidth + 'px'
-    @toolBar.style.width = @nameWidth + @sizeWidth + @mdateWidth + 200 + 'px'
+    @toolBar.style.width = @nameWidth + @sizeWidth + @mdateWidth + 106 + 'px'
 
     drag = null
 
+    getTargetRsz = (e) =>
+      return @name if e.target.id == 'name-rsz'
+      return @size if e.target.id == 'size-rsz'
+      return @mdate if e.target.id == 'mdate-rsz'
+      return null
+        
     @subscriptions.add @subscribeTo @toolBar, '.rsz',
+      'dblclick': (e) =>
+        console.log "finder-tool: double click:", e.target.id, e if @debug
+        # XXX, you can invoke some function here...
       'mousedown': (e) =>
         console.log "finder-tool: drag:", e.target.id, e if @debug
-        if e.target.id == 'name-rsz'
-          target = @name
-        if e.target.id == 'size-rsz'
-          target = @size
-        if e.target.id == 'mdate-rsz'
-          target = @mdate
-        return if not target
+        return if not target = getTargetRsz(e)
         drag = { 
           x: e.clientX, 
           y: e.clientY,
