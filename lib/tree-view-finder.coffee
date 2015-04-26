@@ -180,5 +180,5 @@ module.exports = TreeViewFinder =
 
   updateDebugFlags: ->
       @debug = atom.config.get('tree-view-finder.debugTreeViewFinder')
-      @fileInfo.debug = atom.config.get('tree-view-finder.debugFinderTool')
-      @finderTool.debug = atom.config.get('tree-view-finder.debugFileInfo')
+      @fileInfo.debug = atom.config.get('tree-view-finder.debugFileInfo')
+      @finderTool.debug = atom.config.get('tree-view-finder.debugFinderTool')
