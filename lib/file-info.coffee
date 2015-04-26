@@ -10,13 +10,13 @@ class FileInfo
 
   destroy: ->
 
-  initialize: (treeView) ->
-    console.log 'file-info: initialize', treeView if @debug
-    @treeView = treeView
-    @update()
+  initialize: ->
+    console.log 'file-info: initialize' if @debug
 
-  show: ->
-    console.log 'file-info: show' if @debug
+  show: (treeView) ->
+    console.log 'file-info: show: treeView =', treeView if @debug
+    return if not treeView
+    @treeView = treeView
     @visible = true
     @update()
 
@@ -24,6 +24,7 @@ class FileInfo
     console.log 'file-info: hide' if @debug
     @visible = false
     @update()
+    @treeView = null
 
   update: ->
     if @treeView?

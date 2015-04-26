@@ -21,11 +21,9 @@ class FinderTool extends HTMLElement
         @div outlet: 'mdate-rsz', class: 'btn rsz', id: 'mdate-rsz', ''
 
   initialize: (treeViewFinder) ->
+    console.log "finder-tool: initialize" if @debug
     @treeViewFinder = treeViewFinder
     @subscriptions = new CompositeDisposable
-
-    workspace = atom.views.getView(atom.workspace)
-    @treeViewScroller = workspace.querySelector('.tree-view-scroller')
 
     @subscriptions.add @subscribeTo @toolBar, '.btn',
       'click': (e) =>
@@ -79,13 +77,20 @@ class FinderTool extends HTMLElement
       @mdate.offsetWidth)
 
   attach: ->
+    console.log "finder-tool: attach" if @debug
+    workspace = atom.views.getView(atom.workspace)
+    @treeViewScroller = workspace.querySelector('.tree-view-scroller')
+    return if not @treeViewScroller
     @treeViewScroller.insertBefore(this, @treeViewScroller.firstChild)
     @updateFileInfo()
     @attached = true
 
   detach: ->
+    console.log "finder-tool: detach" if @debug
+    return if not @treeViewScroller
     @treeViewScroller.removeChild(this)
     @attached = false
+    @treeViewScroller = null
 
   destroy: ->
     @detach()

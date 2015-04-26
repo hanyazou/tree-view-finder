@@ -23,6 +23,7 @@ module.exports = TreeViewFinder =
   subscriptions: null
   treeView: null
   visible: false
+  xorhandler: null
 
   activate: (state) ->
     @finderTool = new FinderTool()
@@ -32,16 +33,26 @@ module.exports = TreeViewFinder =
 
     @subscriptions = new CompositeDisposable
 
-    treeViewPkg = atom.packages.getLoadedPackage('tree-view')
-    console.log 'tree-view-finder: create TreeView' if @debug
-    @treeView = treeViewPkg.mainModule.createView()
-
     @finderTool.initialize(this)
-    @fileInfo.initialize(@treeView)
-    @handleEvents()
+    @fileInfo.initialize()
 
     # Register command that toggles this view
     @subscriptions.add atom.commands.add 'atom-workspace', 'tree-view-finder:toggle': => @toggle()
+
+    # Install event handlers which don't depend on TreeView panel status.
+    @subscriptions.add atom.project.onDidChangePaths =>
+      @updateRoots()
+
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugTreeViewFinder', =>
+      @updateDebugFlags()
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFinderTool', =>
+      @updateDebugFlags()
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFileInfo', =>
+      @updateDebugFlags()
+
+    window.onresize = () =>
+      console.log 'Window innerWidth:', window.innerWidth if @debug
+      @fitWidth()
 
   deactivate: ->
     console.log 'tree-view-finder: deactivate' if @debug
@@ -60,8 +71,12 @@ module.exports = TreeViewFinder =
   show: ->
     console.log 'tree-view-finder: show()' if @debug
 
+    treeViewPkg = atom.packages.getLoadedPackage('tree-view')
+    console.log 'tree-view-finder: create TreeView' if @debug
+    @treeView = treeViewPkg.mainModule.createView()
+
     # XXX, check if there is the tree-view
-    if not @treeView.panel
+    if not @treeView?.panel
       console.log 'tree-view-finder: show(): @treeView.panel =', @treeView.panel
       return 
 
@@ -71,11 +86,9 @@ module.exports = TreeViewFinder =
     workspaceElement = atom.views.getView(atom.workspace)
     workspaceElement.querySelector('atom-workspace-axis.vertical').classList.add('tree-view-finder-fit')
 
-    @fileInfo.show()
+    @fileInfo.show(@treeView)
     @fitWidth()
-    window.onresize = () =>
-      console.log 'Window innerWidth:', window.innerWidth if @debug
-      @fitWidth()
+    @hookTreeViewEvents()
 
   hide: ->
     console.log 'tree-view-finder: hide()' if @debug
@@ -98,10 +111,10 @@ module.exports = TreeViewFinder =
       @resizer.style.width = @resizerOriginalWidth
       @resizer = null
 
-  handleEvents: ->
-    console.log 'tree-view-finder: handleEvents: install click handler' if @debug
+  hookTreeViewEvents: ->
+    console.log 'tree-view-finder: hookTreeViewEvents: install click handler' if @debug
     @treeView.off 'click'
-    xorhandler = new xorTap(
+    @xorhandler ?= new xorTap(
       (e) =>
         console.log 'tree-view-finder: click!', e if @debug
         @treeView.entryClicked(e)
@@ -124,18 +137,7 @@ module.exports = TreeViewFinder =
         click_ts = e.timeStamp
         return if e.target.classList.contains('entries')
         return if e.shiftKey or e.metaKey or e.ctrlKey
-        xorhandler(e)
-    console.log 'tree-view-finder: handleEvents: on click...done' if @debug
-
-    @subscriptions.add atom.project.onDidChangePaths =>
-      @updateRoots()
-
-    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugTreeViewFinder', =>
-      @updateDebugFlags()
-    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFinderTool', =>
-      @updateDebugFlags()
-    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFileInfo', =>
-      @updateDebugFlags()
+        @xorhandler(e)
 
   updateRoots: ->
     console.log 'tree-view-finder: updateRoots' if @debug
