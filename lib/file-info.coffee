@@ -78,12 +78,17 @@ class FileInfo
       @updateWidth()
 
   updateWidth: (nameWidth = @nameWidth, sizeWidth = @sizeWidth, mdateWidth = @mdateWidth) ->
-    console.log 'file-info: updateWidth', nameWidth, sizeWidth, mdateWidth if @debug
+    console.log 'file-info: updateWidth:', nameWidth, sizeWidth, mdateWidth if @debug
     @nameWidth = nameWidth
     @sizeWidth = sizeWidth
     @mdateWidth = mdateWidth
-    console.log 'file-info: updateWidth' if @debug
     if @treeView and @visible
+      ol = @treeView.element.querySelector '.tree-view'
+      if @debug
+        console.log "file-info: updateWidth: querySelector('.tree-view') =",
+          ol, ol.getBoundingClientRect()
+      ofs = ol.getBoundingClientRect().left
+
       fileEntries = @treeView.element.querySelectorAll '.file.entry.list-item'
       for fileEntry in fileEntries
         name = fileEntry.querySelector 'span.name'
@@ -91,7 +96,17 @@ class FileInfo
         [size] = name.parentNode.querySelectorAll '.file-info-size'
         [mdate] = name.parentNode.querySelectorAll '.file-info-mdate'
 
-        padding.style.width = @nameWidth - name.getBoundingClientRect().left - name.getBoundingClientRect().width + 'px'
-        console.log 'updateWidth:', padding.style.marginRight, @nameWidth, name.getBoundingClientRect().left, name.getBoundingClientRect().width + 'px' if @debug
+        rect = name.getBoundingClientRect()
+        margin = @nameWidth - (rect.left - ofs + rect.width)
+        if margin < 10
+          padding.style.marginRight = margin + 'px'
+          padding.style.width = '0px'
+        else
+          padding.style.marginRight = '0px'
+          padding.style.width = margin + 'px'
+        if @debug
+          console.log 'file-info: updateWidth:', 
+            padding.style.width, padding.style.marginRight,
+            '(' + @nameWidth + ' - ' + (rect.left - ofs) + ' - ' + rect.width + ')'
         size.style.width = @sizeWidth + 'px'
         mdate.style.width = @mdateWidth+ 'px'
