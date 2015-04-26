@@ -6,7 +6,7 @@
   "activationCommands": {
     "atom-workspace": "tree-view-finder:toggle"
   },
-  "repository": "https://github.com/atom/tree-view-finder",
+  "repository": "https://github.com/hanyazou/tree-view-finder",
   "license": "MIT",
   "engines": {
     "atom": ">=0.174.0 <2.0.0"
