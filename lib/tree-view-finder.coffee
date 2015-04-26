@@ -7,6 +7,10 @@ fs = null
 
 module.exports = TreeViewFinder =
   config:
+    entireWindow:
+      type: 'boolean'
+      default: true
+      title: 'Use entire window'
     debugTreeViewFinder:
       type: 'boolean'
       default: true
@@ -24,6 +28,7 @@ module.exports = TreeViewFinder =
   treeView: null
   visible: false
   xorhandler: null
+  isFit: false
 
   activate: (state) ->
     @finderTool = new FinderTool()
@@ -50,9 +55,12 @@ module.exports = TreeViewFinder =
     @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFileInfo', =>
       @updateDebugFlags()
 
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.entireWindow', =>
+      @updateEntireWindowCongig()
+
     window.onresize = () =>
       console.log 'Window innerWidth:', window.innerWidth if @debug
-      @fitWidth()
+      @updateWidth()
 
   deactivate: ->
     console.log 'tree-view-finder: deactivate' if @debug
@@ -83,33 +91,44 @@ module.exports = TreeViewFinder =
     @visible = true
     @finderTool.attach()
 
-    workspaceElement = atom.views.getView(atom.workspace)
-    workspaceElement.querySelector('atom-workspace-axis.vertical').classList.add('tree-view-finder-fit')
-
     @fileInfo.show(@treeView)
-    @fitWidth()
+    @updateEntireWindowCongig()
     @hookTreeViewEvents()
 
   hide: ->
     console.log 'tree-view-finder: hide()' if @debug
     @visible = false
     @fileInfo.hide()
-    workspaceElement = atom.views.getView(atom.workspace)
-    workspaceElement.querySelector('atom-workspace-axis.vertical').classList.remove('tree-view-finder-fit')
     @finderTool.detach()
     @unfitWidth()
 
   fitWidth: ->
+    console.log 'tree-view-finder: fitWidth...' if @debug
     return if not @visible
-    if !@resizer
-      @resizer = atom.views.getView(atom.workspace).querySelector('.tree-view-resizer')
-      @resizerOriginalWidth = @resizer.style.width
-    @resizer.style.width = window.innerWidth + 'px'
+    return if @isFit
+    @resizer = atom.views.getView(atom.workspace).querySelector('.tree-view-resizer')
+    return if not @resizer
+    ws = atom.views.getView(atom.workspace)
+    vertical = ws.querySelector('atom-workspace-axis.vertical')
+    vertical.classList.add('tree-view-finder-fit')
+    @resizerOriginalWidth = @resizer.style.width
+    @isFit = true
+    console.log 'tree-view-finder: fitWidth...succeeded' if @debug
+    @updateWidth()
+
+  updateWidth: ->
+    if @resizer and @isFit
+      @resizer.style.width = window.innerWidth + 'px'
 
   unfitWidth: ->
-    if @resizer
+    console.log 'tree-view-finder: unfitWidth' if @debug
+    if @resizer and @isFit
       @resizer.style.width = @resizerOriginalWidth
-      @resizer = null
+    @resizer = null
+    ws = atom.views.getView(atom.workspace)
+    vertical = ws.querySelector('atom-workspace-axis.vertical')
+    vertical.classList.remove('tree-view-finder-fit')
+    @isFit = false
 
   hookTreeViewEvents: ->
     console.log 'tree-view-finder: hookTreeViewEvents: install click handler' if @debug
@@ -152,6 +171,12 @@ module.exports = TreeViewFinder =
       if (exists)
         open ?= require 'open'
         open uri
+
+  updateEntireWindowCongig: ->
+    if atom.config.get('tree-view-finder.entireWindow')
+      @fitWidth()
+    else
+      @unfitWidth()
 
   updateDebugFlags: ->
       @debug = atom.config.get('tree-view-finder.debugTreeViewFinder')
