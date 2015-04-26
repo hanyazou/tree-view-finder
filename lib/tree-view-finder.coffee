@@ -6,32 +6,42 @@ open = null
 fs = null
 
 module.exports = TreeViewFinder =
+  config:
+    debugTreeViewFinder:
+      type: 'boolean'
+      default: true
+      title: 'Enable debug information from tree-view-finder.coffee'
+    debugFinderTool:
+      type: 'boolean'
+      default: true
+      title: 'Enable debug information from finder-tool.coffee'
+    debugFileInfo:
+      type: 'boolean'
+      default: true
+      title: 'Enable debug information from file-info.coffee'
+
   subscriptions: null
   treeView: null
-  debug: true
   visible: false
 
   activate: (state) ->
-    console.log 'tree-view-finder: activate' if @debug
     @finderTool = new FinderTool()
-    @finderTool.initialize(this)
     @fileInfo = new FileInfo()
+    @updateDebugFlags()
+    console.log 'tree-view-finder: activate' if @debug
 
-    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
-
-    # Register command that toggles this view
-    @subscriptions.add atom.commands.add 'atom-workspace', 'tree-view-finder:toggle': => @toggle()
-
-    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debug', =>
-      debug = atom.config.get('tree-view-finder.debug')
 
     treeViewPkg = atom.packages.getLoadedPackage('tree-view')
     console.log 'tree-view-finder: create TreeView' if @debug
     @treeView = treeViewPkg.mainModule.createView()
+
+    @finderTool.initialize(this)
     @fileInfo.initialize(@treeView)
-    @alterTreeView()
     @handleEvents()
+
+    # Register command that toggles this view
+    @subscriptions.add atom.commands.add 'atom-workspace', 'tree-view-finder:toggle': => @toggle()
 
   deactivate: ->
     console.log 'tree-view-finder: deactivate' if @debug
@@ -42,8 +52,6 @@ module.exports = TreeViewFinder =
     #treeViewFinderViewState: @treeViewFinderView.serialize()
 
   toggle: ->
-    console.log 'TreeViewFinder was toggled!'
-    
     if @visible
       @hide();
     else
@@ -51,6 +59,12 @@ module.exports = TreeViewFinder =
 
   show: ->
     console.log 'tree-view-finder: show()' if @debug
+
+    # XXX, check if there is the tree-view
+    if not @treeView.panel
+      console.log 'tree-view-finder: show(): @treeView.panel =', @treeView.panel
+      return 
+
     @visible = true
     @finderTool.attach()
 
@@ -84,9 +98,6 @@ module.exports = TreeViewFinder =
       @resizer.style.width = @resizerOriginalWidth
       @resizer = null
 
-  alterTreeView: ->
-    console.log 'tree-view-finder: alterTreeView', @treeView.roots if @debug
-
   handleEvents: ->
     console.log 'tree-view-finder: handleEvents: install click handler' if @debug
     @treeView.off 'click'
@@ -119,6 +130,13 @@ module.exports = TreeViewFinder =
     @subscriptions.add atom.project.onDidChangePaths =>
       @updateRoots()
 
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugTreeViewFinder', =>
+      @updateDebugFlags()
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFinderTool', =>
+      @updateDebugFlags()
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFileInfo', =>
+      @updateDebugFlags()
+
   updateRoots: ->
     console.log 'tree-view-finder: updateRoots' if @debug
     for projectPath in atom.project.getPaths()
@@ -132,3 +150,8 @@ module.exports = TreeViewFinder =
       if (exists)
         open ?= require 'open'
         open uri
+
+  updateDebugFlags: ->
+      @debug = atom.config.get('tree-view-finder.debugTreeViewFinder')
+      @fileInfo.debug = atom.config.get('tree-view-finder.debugFinderTool')
+      @finderTool.debug = atom.config.get('tree-view-finder.debugFileInfo')
