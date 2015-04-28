@@ -13,15 +13,15 @@ class FinderTool extends HTMLElement
   @content: ->
     @tag 'atom-panel', class: 'tree-view-finder-tool tool-panel', =>
       @div outlet: 'toolBar', class: 'btn-group', =>
-        @div class: 'btn disable', id: 'back', '<'
-        @div class: 'btn disable', id: 'forth', '>'
-        @div class: 'btn disable', id: 'home', 'Home'
+        @div outlet: 'backBtn', class: 'btn disable', id: 'back-btn', '<'
+        @div outlet: 'forwBtn', class: 'btn disable', id: 'forw-btn', '>'
+        @div outlet: 'homeBtn', class: 'btn disable', id: 'home-btn', 'Home'
         @div outlet: 'name', class: 'btn', id: 'name', ' '
-        @div outlet: 'name-rsz', class: 'btn rsz', id: 'name-rsz', ''
+        @div outlet: 'nameRsz', class: 'btn rsz', id: 'name-rsz', ''
         @div outlet: 'size', class: 'btn', id: 'size', 'Size'
-        @div outlet: 'size-rsz', class: 'btn rsz', id: 'size-rsz', ''
+        @div outlet: 'sizeRsz', class: 'btn rsz', id: 'size-rsz', ''
         @div outlet: 'mdate', class: 'btn', id: 'mdate', 'Date Modified'
-        @div outlet: 'mdate-rsz', class: 'btn rsz', id: 'mdate-rsz', ''
+        @div outlet: 'mdateRsz', class: 'btn rsz', id: 'mdate-rsz', ''
 
   initialize: (treeViewFinder) ->
     console.log "finder-tool: initialize", treeViewFinder if @debug
@@ -45,7 +45,7 @@ class FinderTool extends HTMLElement
     @name.style.width = @nameWidth + 'px'
     @size.style.width = @sizeWidth + 'px'
     @mdate.style.width = @mdateWidth + 'px'
-    @toolBar.style.width = @nameWidth + @sizeWidth + @mdateWidth + 106 + 'px'
+    @toolBar.style.width = @nameWidth + @sizeWidth + @mdateWidth + 104 + 'px'
 
     drag = null
 
