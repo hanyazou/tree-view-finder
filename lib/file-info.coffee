@@ -61,14 +61,14 @@ class FileInfo
           name.parentNode.appendChild(padding)
 
           size = document.createElement('span')
-          size.textContent = stat.size
+          size.textContent = @toSizeString(stat.size)
           size.classList.add('file-info-added')
           size.classList.add('file-info-size')
           size.classList.add('file-info-debug') if @debug
           name.parentNode.appendChild(size)
 
           date = document.createElement('span')
-          date.textContent = stat.mtime
+          date.textContent = @toDateString(stat.mtime)
           date.classList.add('file-info-added')
           date.classList.add('file-info-mdate')
           date.classList.add('file-info-debug') if @debug
@@ -110,3 +110,23 @@ class FileInfo
             '(' + @nameWidth + ' - ' + (rect.left - ofs) + ' - ' + rect.width + ')'
         size.style.width = @sizeWidth + 'px'
         mdate.style.width = @mdateWidth+ 'px'
+
+  toSizeString: (size) ->
+    if size < 1
+      return 'Zero bytes'
+    if size < 2
+      return '1 byte'
+    if size < 1000
+      return size + ' bytes'
+    if size < 999500
+      return Math.round(size/1000)/1 + ' KB'
+    if size < 999950000
+      return Math.round(size/100000)/10 + ' MB'
+    return Math.round(size/10000000)/100 + ' GB'
+
+  toDateString: (date) ->
+    shortMonth = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    res = new Date(date + '')
+    shortMonth[res.getMonth()] + ' ' + res.getDate() + ', ' + 
+      res.getFullYear() + ', ' + res.getHours() + ':' + res.getMinutes()
