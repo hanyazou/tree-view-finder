@@ -106,18 +106,26 @@ class FinderTool extends HTMLElement
   attach: ->
     console.log "finder-tool: attach" if @debug
     workspace = atom.views.getView(atom.workspace)
+    @treeViewResizer = workspace.querySelector('.tree-view-resizer')
     @treeViewScroller = workspace.querySelector('.tree-view-scroller')
-    return if not @treeViewScroller
-    @treeViewScroller.insertBefore(this, @treeViewScroller.firstChild)
+    @treeView = workspace.querySelector('.tree-view')
+    return if not @treeViewResizer
+    @treeViewResizer.insertBefore(this, @treeViewScroller)
+    @treeViewScroller.classList.add('with-finder')
     @updateFileInfo()
     @attached = true
+    @scrollSubscription = @subscribeTo @treeViewScroller,'.tree-view-scroller',
+      'scroll': (e) =>
+        @toolBar.style.left = @treeView.getBoundingClientRect().left + 'px'
 
   detach: ->
     console.log "finder-tool: detach" if @debug
-    return if not @treeViewScroller
-    @treeViewScroller.removeChild(this)
+    return if not @treeViewResizer
+    @scrollSubscription.dispose()
+    @treeViewScroller.classList.remove('with-finder')
+    @treeViewResizer.removeChild(this)
     @attached = false
-    @treeViewScroller = null
+    @treeViewResizer = null
 
   destroy: ->
     @detach()

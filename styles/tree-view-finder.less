@@ -11,6 +11,12 @@ atom-workspace atom-workspace-axis.tree-view-finder-fit {
   display: none;
 }
 
+@finder-tool-height: 27px;
+
+.with-finder.tree-view-scroller {
+  height: calc(~'100% - @{finder-tool-height}');
+}
+
 tree-view-finder-tool {
   display: -webkit-flex;
   overflow: visible;
