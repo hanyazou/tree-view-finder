@@ -79,6 +79,7 @@ class FinderTool extends HTMLElement
     document.onmousemove = (e) =>
       if drag
         update(e)
+        @updateFileInfo()
 
     document.onmouseup = (e) =>
       if drag

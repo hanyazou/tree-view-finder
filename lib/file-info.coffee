@@ -45,8 +45,36 @@ class FileInfo
 
   add: ->
       console.log 'file-info: add' if @debug
-      fileEntries = @treeView.element.querySelectorAll '.file.entry.list-item'
-      for fileEntry in fileEntries
+      @updateWidth()
+
+  updateWidth: (nameWidth = @nameWidth, sizeWidth = @sizeWidth, mdateWidth = @mdateWidth) ->
+    console.log 'file-info: updateWidth:', nameWidth, sizeWidth, mdateWidth if @debug
+    @nameWidth = nameWidth
+    @sizeWidth = sizeWidth
+    @mdateWidth = mdateWidth
+
+    if @treeView and @visible
+      ol = @treeView.element.querySelector '.tree-view'
+      if @debug
+        console.log "file-info: updateWidth: querySelector('.tree-view') =",
+          ol, ol.getBoundingClientRect()
+      @offset = ol.getBoundingClientRect().left
+      @fileEntries = @treeView.element.querySelectorAll '.file.entry.list-item'
+      @fileEntryIndex = 0
+      clearInterval(@timer)
+      console.log 'file-info: update thread...' if @debug
+      console.log 'file-info: update thread...', @updateThread if @debug
+      @timer = setInterval(@updateThread, 1)
+
+  updateThread: =>
+      if not @treeView or not @visible
+        clearInterval(@timer)
+        @timer = null
+        @fileEntries = null
+        return
+
+      cost = 0
+      while fileEntry = @fileEntries[@fileEntryIndex++]
         name = fileEntry.querySelector 'span.name'
         if not name.classList.contains('file-info')
           name.classList.add('file-info')
@@ -74,30 +102,13 @@ class FileInfo
           date.classList.add('file-info-debug') if @debug
           name.parentNode.appendChild(date)
 
-      console.log 'file-info: add...done' if @debug
-      @updateWidth()
-
-  updateWidth: (nameWidth = @nameWidth, sizeWidth = @sizeWidth, mdateWidth = @mdateWidth) ->
-    console.log 'file-info: updateWidth:', nameWidth, sizeWidth, mdateWidth if @debug
-    @nameWidth = nameWidth
-    @sizeWidth = sizeWidth
-    @mdateWidth = mdateWidth
-    if @treeView and @visible
-      ol = @treeView.element.querySelector '.tree-view'
-      if @debug
-        console.log "file-info: updateWidth: querySelector('.tree-view') =",
-          ol, ol.getBoundingClientRect()
-      ofs = ol.getBoundingClientRect().left
-
-      fileEntries = @treeView.element.querySelectorAll '.file.entry.list-item'
-      for fileEntry in fileEntries
         name = fileEntry.querySelector 'span.name'
         [padding] = name.parentNode.querySelectorAll '.file-info-padding'
         [size] = name.parentNode.querySelectorAll '.file-info-size'
         [mdate] = name.parentNode.querySelectorAll '.file-info-mdate'
 
         rect = name.getBoundingClientRect()
-        margin = @nameWidth - (rect.left - ofs + rect.width)
+        margin = @nameWidth - (rect.left - @offset + rect.width)
         if margin < 10
           padding.style.marginRight = margin + 'px'
           padding.style.width = '0px'
@@ -105,11 +116,16 @@ class FileInfo
           padding.style.marginRight = '0px'
           padding.style.width = margin + 'px'
         if @debug
-          console.log 'file-info: updateWidth:', 
+          console.log 'file-info: updateWidth:', @fileEntryIndex-1 + ':',
             padding.style.width, padding.style.marginRight,
-            '(' + @nameWidth + ' - ' + (rect.left - ofs) + ' - ' + rect.width + ')'
+            '(' + @nameWidth + ' - ' + (rect.left - @offset) + ' - ' + rect.width + ')'
         size.style.width = @sizeWidth + 'px'
         mdate.style.width = @mdateWidth+ 'px'
+        if 50 < ++cost
+          return
+
+      console.log 'file-info: update thread...done' if @debug
+      clearInterval(@timer)
 
   toSizeString: (size) ->
     if size < 1
