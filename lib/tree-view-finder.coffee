@@ -158,6 +158,15 @@ module.exports = TreeViewFinder =
         click_ts = e.timeStamp
         return if e.target.classList.contains('entries')
         return if e.shiftKey or e.metaKey or e.ctrlKey
+        if name = e.target.querySelector('.icon-file-directory')
+          if @debug
+            console.log 'tree-vire-finder: click w/o double click.',
+              name.getBoundingClientRect().left, e.offsetX, 
+              e.offsetX < name.getBoundingClientRect().left
+          if e.offsetX < name.getBoundingClientRect().left
+            @treeView.entryClicked(e)
+            @fileInfo.update()
+            return
         @xorhandler(e)
 
   updateRoots: ->
