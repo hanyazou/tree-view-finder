@@ -19,11 +19,14 @@ class FinderTool extends HTMLElement
         @div outlet: 'backBtn', class: 'btn disable', id: 'back-btn', '<'
         @div outlet: 'forwBtn', class: 'btn disable', id: 'forw-btn', '>'
         @div outlet: 'homeBtn', class: 'btn disable', id: 'home-btn', 'Home'
-        @div outlet: 'name', class: 'btn', id: 'name', ' '
+        @div outlet: 'name', class: 'btn', id: 'name', =>
+          @span class: 'finder-tool-btn-label', id: 'name-btn-label', 'Name'
         @div outlet: 'nameRsz', class: 'btn rsz', id: 'name-rsz', ''
-        @div outlet: 'size', class: 'btn', id: 'size', 'Size'
+        @div outlet: 'size', class: 'btn', id: 'size', =>
+          @span class: 'finder-tool-btn-label', id: 'size-btn-label', 'Size'
         @div outlet: 'sizeRsz', class: 'btn rsz', id: 'size-rsz', ''
-        @div outlet: 'mdate', class: 'btn', id: 'mdate', 'Date Modified'
+        @div outlet: 'mdate', class: 'btn', id: 'mdate', =>
+          @span class: 'finder-tool-btn-label', id: 'mdate-btn-label', 'Date Modified'
         @div outlet: 'mdateRsz', class: 'btn rsz', id: 'mdate-rsz', ''
 
   initialize: (treeViewFinder) ->
@@ -63,17 +66,18 @@ class FinderTool extends HTMLElement
         #
         # sort by name, size and date
         #
-        if e.target.sortKey
-          if e.target.sortKey is @sortKey
+        target = e.target
+        if not target.classList.contains('btn')
+          target = target.parentElement
+        if target.sortKey
+          e.stopPropagation()
+          if target.sortKey is @sortKey
             if @sortOrder is 'ascent'
               @sortOrder = 'descent'
             else
               @sortOrder = 'ascent'
           else
-            @sortKey = e.target.sortKey
-          if @debug
-            console.log 'finder-tool: sort:',
-              'key =', @sortKey, ', order =', @sortOrder
+            @sortKey = target.sortKey
         @updateButtonStatus()
         @treeViewFinder.fileInfo.sort(@sortKey, @sortOrder)
 
@@ -154,6 +158,17 @@ class FinderTool extends HTMLElement
       @homeBtn.classList.remove('disable')
     else
       @homeBtn.classList.add('disable')
+
+    if @debug
+      console.log 'finder-tool: sort:',
+        'key =', @sortKey, ', order =', @sortOrder
+    for label in @toolBar.querySelectorAll('.finder-tool-btn-label')
+      label.classList.remove('finder-tool-btn-label-ascent')
+      label.classList.remove('finder-tool-btn-label-descent')
+      label.classList.add('finder-tool-btn-label-nosort')
+    if label = @toolBar.querySelector('#' + @sortKey + '-btn-label')
+      label.classList.remove('finder-tool-btn-label-nosort')
+      label.classList.add('finder-tool-btn-label-' + @sortOrder)
 
   serialize: ->
     return {} if not @attached
