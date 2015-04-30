@@ -9,6 +9,7 @@ class FinderTool extends HTMLElement
   nameWidth: 200
   sizeWidth: 80
   mdateWidth: 180
+  minWidth: 40
 
   @content: ->
     @tag 'atom-panel', class: 'tree-view-finder-tool tool-panel', =>
@@ -28,6 +29,19 @@ class FinderTool extends HTMLElement
     @treeViewFinder = treeViewFinder
     @subscriptions = new CompositeDisposable
     @updateButtonStatus()
+
+    @name.calcOptWidth = =>
+      btnWidth = @backBtn.offsetWidth + @forwBtn.offsetWidth + 
+        @homeBtn.offsetWidth
+      optWidth = @treeViewFinder.fileInfo.calcOptWidthName()
+      optWidth -= btnWidth
+      if  optWidth < 0
+        optWidth = 0
+      optWidth
+    @size.calcOptWidth = =>
+      @treeViewFinder.fileInfo.calcOptWidthSize()
+    @mdate.calcOptWidth = =>
+      @treeViewFinder.fileInfo.calcOptWidthMdate()
 
     @subscriptions.add @subscribeTo @toolBar, '.btn',
       'click': (e) =>
@@ -65,7 +79,13 @@ class FinderTool extends HTMLElement
     @subscriptions.add @subscribeTo @toolBar, '.rsz',
       'dblclick': (e) =>
         console.log "finder-tool: double click:", e.target.id, e if @debug
-        # XXX, you can invoke some function here...
+        # optimize column width
+        return if not target = getTargetRsz(e)
+        if @debug
+          console.log 'finder-tool: opt width:', target.id, 
+            target.calcOptWidth()
+        target.style.width = Math.max(target.calcOptWidth(), @minWidth) + 'px'
+        @updateFileInfo()
       'mousedown': (e) =>
         console.log "finder-tool: drag:", e.target.id, e if @debug
         return if not target = getTargetRsz(e)
@@ -77,8 +97,8 @@ class FinderTool extends HTMLElement
         } 
     updateButtonWidths = (e) =>
       d = e.clientX - drag.x
-      if drag.originalWidth + d < 40
-        d = 40 - drag.originalWidth
+      if drag.originalWidth + d < @minWidth
+        d = @minWidth - drag.originalWidth
       drag.target.style.width = drag.originalWidth + d + 'px'
 
     document.onmousemove = (e) =>

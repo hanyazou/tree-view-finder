@@ -89,17 +89,25 @@ class FileInfo
           name.parentNode.appendChild(padding)
 
           size = document.createElement('span')
+          innerSize = document.createElement('span')
           if fileEntry.classList.contains('file')
-            size.textContent = @toSizeString(stat.size)
+            innerSize.textContent = @toSizeString(stat.size)
           else
-            size.textContent = '--'
+            innerSize.textContent = '--'
+          innerSize.classList.add('file-info-inner-size')
+          innerSize.classList.add('file-info-debug') if @debug
+          size.appendChild(innerSize)
           size.classList.add('file-info-added')
           size.classList.add('file-info-size')
           size.classList.add('file-info-debug') if @debug
           name.parentNode.appendChild(size)
 
           date = document.createElement('span')
-          date.textContent = @toDateString(stat.mtime)
+          innerDate = document.createElement('span')
+          innerDate.textContent = @toDateString(stat.mtime)
+          innerDate.classList.add('file-info-inner-mdate')
+          innerDate.classList.add('file-info-debug') if @debug
+          date.appendChild(innerDate)
           date.classList.add('file-info-added')
           date.classList.add('file-info-mdate')
           date.classList.add('file-info-debug') if @debug
@@ -149,3 +157,27 @@ class FileInfo
     res = new Date(date + '')
     shortMonth[res.getMonth()] + ' ' + res.getDate() + ', ' + 
       res.getFullYear() + ', ' + res.getHours() + ':' + res.getMinutes()
+
+  calcOptWidthName: =>
+    ol = @treeView.element.querySelector '.tree-view'
+    offset = ol.getBoundingClientRect().left
+    elems = @treeView.element.querySelectorAll '.entry span.name'
+    maxWidth = 0
+    for elem in elems
+      rect = elem.getBoundingClientRect()
+      width = (rect.left - @offset + rect.width)
+      maxWidth = Math.max(width, maxWidth)
+    maxWidth
+
+  calcOptWidthSize: =>
+    @calcOptWidth '.entry .file-info-inner-size'
+
+  calcOptWidthMdate: =>
+    @calcOptWidth '.entry .file-info-inner-mdate'
+
+  calcOptWidth: (selector) ->
+    elems = @treeView.element.querySelectorAll selector
+    maxWidth = 0
+    for elem in elems
+      maxWidth = Math.max(elem.offsetWidth, maxWidth)
+    maxWidth + 16
