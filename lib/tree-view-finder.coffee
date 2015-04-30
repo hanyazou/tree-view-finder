@@ -192,13 +192,14 @@ module.exports = TreeViewFinder =
           console.log 'tree-view-finder: double click: file' if @debug
           @openUri(e.target.dataset.path)
       )
-    click_ts = 0
+    #click_ts = 0
     @treeView.on 'click', '.entry', (e) =>
       #console.log 'tree-view-finder: click event', e if @debug
-      if (click_ts != e.timeStamp)
-        click_ts = e.timeStamp
+      #if (click_ts != e.timeStamp)
+      #  click_ts = e.timeStamp
         return if e.target.classList.contains('entries')
         return if e.shiftKey or e.metaKey or e.ctrlKey
+        e.stopPropagation()
         if name = e.target.querySelector('.icon-file-directory')
           if @debug
             console.log 'tree-vire-finder: click w/o double click.',
