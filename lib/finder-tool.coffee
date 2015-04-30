@@ -199,7 +199,9 @@ class FinderTool extends HTMLElement
     @attached = true
     @scrollSubscription = @subscribeTo @treeViewScroller,'.tree-view-scroller',
       'scroll': (e) =>
-        @toolBar.style.left = @treeView.getBoundingClientRect().left + 'px'
+        treeViewScrollerLeft = @treeViewScroller.getBoundingClientRect().left
+        treeViewLeft = @treeView.getBoundingClientRect().left
+        @toolBar.style.left = treeViewLeft - treeViewScrollerLeft + 'px'
 
   detach: ->
     console.log "finder-tool: detach" if @debug
