@@ -59,7 +59,7 @@ class FileInfo
         console.log "file-info: updateWidth: querySelector('.tree-view') =",
           ol, ol.getBoundingClientRect()
       @offset = ol.getBoundingClientRect().left
-      @fileEntries = @treeView.element.querySelectorAll '.file.entry.list-item'
+      @fileEntries = @treeView.element.querySelectorAll '.entry'
       @fileEntryIndex = 0
       clearInterval(@timer)
       console.log 'file-info: update thread...' if @debug
@@ -89,7 +89,10 @@ class FileInfo
           name.parentNode.appendChild(padding)
 
           size = document.createElement('span')
-          size.textContent = @toSizeString(stat.size)
+          if fileEntry.classList.contains('file')
+            size.textContent = @toSizeString(stat.size)
+          else
+            size.textContent = '--'
           size.classList.add('file-info-added')
           size.classList.add('file-info-size')
           size.classList.add('file-info-debug') if @debug
