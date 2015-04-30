@@ -53,7 +53,6 @@ class FinderTool extends HTMLElement
     @name.style.width = @nameWidth + 'px'
     @size.style.width = @sizeWidth + 'px'
     @mdate.style.width = @mdateWidth + 'px'
-    @toolBar.style.width = @nameWidth + @sizeWidth + @mdateWidth + 104 + 'px'
 
     drag = null
 
@@ -75,14 +74,12 @@ class FinderTool extends HTMLElement
           y: e.clientY,
           target: target,
           originalWidth: target.offsetWidth,
-          totalWidth: @toolBar.offsetWidth
         } 
     updateButtonWidths = (e) =>
       d = e.clientX - drag.x
       if drag.originalWidth + d < 40
         d = 40 - drag.originalWidth
       drag.target.style.width = drag.originalWidth + d + 'px'
-      @toolBar.style.width = drag.totalWidth + d + 'px'
 
     document.onmousemove = (e) =>
       if drag
