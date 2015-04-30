@@ -35,11 +35,11 @@ class FileInfo
 
   delete:->
     console.log 'file-info: delete' if @debug
-    elements = @treeView.element.querySelectorAll '.file.entry.list-item .file-info'
+    elements = @treeView.element.querySelectorAll '.entry .file-info'
     for element in elements
       element.classList.remove('file-info')
       element.classList.remove('file-info-debug') if @debug
-    elements = @treeView.element.querySelectorAll '.file.entry.list-item .file-info-added'
+    elements = @treeView.element.querySelectorAll '.entry .file-info-added'
     for element in elements
       element.remove()
 
