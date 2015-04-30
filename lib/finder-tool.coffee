@@ -10,6 +10,8 @@ class FinderTool extends HTMLElement
   sizeWidth: 80
   mdateWidth: 180
   minWidth: 40
+  sortKey: 'name'
+  sortOrder: 'ascent'
 
   @content: ->
     @tag 'atom-panel', class: 'tree-view-finder-tool tool-panel', =>
@@ -42,17 +44,38 @@ class FinderTool extends HTMLElement
       @treeViewFinder.fileInfo.calcOptWidthSize()
     @mdate.calcOptWidth = =>
       @treeViewFinder.fileInfo.calcOptWidthMdate()
+    @name.sortKey = 'name'
+    @size.sortKey = 'size'
+    @mdate.sortKey = 'mdate'
 
     @subscriptions.add @subscribeTo @toolBar, '.btn',
       'click': (e) =>
         console.log "finder-tool: click:", e.target.id, e if @debug
+        #
+        # history, back and forth
+        #
         if e.target == @backBtn
           @treeViewFinder.history.back()
         if e.target == @forwBtn
           @treeViewFinder.history.forw()
         if e.target == @homeBtn
           @treeViewFinder.history.goHome()
+        #
+        # sort by name, size and date
+        #
+        if e.target.sortKey
+          if e.target.sortKey is @sortKey
+            if @sortOrder is 'ascent'
+              @sortOrder = 'descent'
+            else
+              @sortOrder = 'ascent'
+          else
+            @sortKey = e.target.sortKey
+          if @debug
+            console.log 'finder-tool: sort:',
+              'key =', @sortKey, ', order =', @sortOrder
         @updateButtonStatus()
+        @treeViewFinder.fileInfo.sort(@sortKey, @sortOrder)
 
     state = treeViewFinder?.state?.finderTool
     if state

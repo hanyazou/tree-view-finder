@@ -5,6 +5,8 @@ module.exports =
 class FileInfo
   visible: false
   debug: false
+  sortKey: 'name'
+  sortOrder: 'ascent'
 
   constructor: () ->
 
@@ -74,15 +76,18 @@ class FileInfo
         return
 
       cost = 0
+      added = 0
       while fileEntry = @fileEntries[@fileEntryIndex++]
         name = fileEntry.querySelector 'span.name'
         if not name.classList.contains('file-info')
+          added++
           name.classList.add('file-info')
           name.classList.add('file-info-debug') if @debug
           stat = fs.statSyncNoException(name.dataset.path)
 
           padding = document.createElement('span')
           padding.textContent = '\u00A0'  # XXX
+          fileEntry.dataset.name = name.textContent.toLowerCase()  # use for sorting
           padding.classList.add('file-info-added')
           padding.classList.add('file-info-padding')
           padding.classList.add('file-info-debug') if @debug
@@ -92,8 +97,10 @@ class FileInfo
           innerSize = document.createElement('span')
           if fileEntry.classList.contains('file')
             innerSize.textContent = @toSizeString(stat.size)
+            fileEntry.dataset.size = stat.size  # use for sorting
           else
             innerSize.textContent = '--'
+            fileEntry.dataset.size = -1  # use for sorting
           innerSize.classList.add('file-info-inner-size')
           innerSize.classList.add('file-info-debug') if @debug
           size.appendChild(innerSize)
@@ -105,6 +112,7 @@ class FileInfo
           date = document.createElement('span')
           innerDate = document.createElement('span')
           innerDate.textContent = @toDateString(stat.mtime)
+          fileEntry.dataset.mdate = stat.mtime.getTime()  # use for sorting
           innerDate.classList.add('file-info-inner-mdate')
           innerDate.classList.add('file-info-debug') if @debug
           date.appendChild(innerDate)
@@ -133,10 +141,12 @@ class FileInfo
         size.style.width = @sizeWidth + 'px'
         mdate.style.width = @mdateWidth+ 'px'
         if 50 < ++cost
+          @sort(@sortKey, @sortOrder) if added
           return
 
       console.log 'file-info: update thread...done' if @debug
       clearInterval(@timer)
+      @sort(@sortKey, @sortOrder) if added
 
   toSizeString: (size) ->
     if size < 1
@@ -181,3 +191,47 @@ class FileInfo
     for elem in elems
       maxWidth = Math.max(elem.offsetWidth, maxWidth)
     maxWidth + 16
+
+  # XXX, messy...
+  sort: (key='name', order='ascent') ->
+    return if not @treeView
+    @sortKey = key
+    @sortOrder = order
+    if @debug
+      console.log 'file-info: sort:',
+        'key =', @sortKey, ', order =', @sortOrder
+    ols = @treeView.element.querySelectorAll 'ol.entries.list-tree'
+    for ol in ols
+      # if ol.childNodes.length
+      #   console.log '====================', ol, ol.childNodes
+      ar = []
+      for li in ol.childNodes
+        # console.log li.dataset['name'], 'value =', li.dataset[key]
+        ar.push li
+      for li in ar
+        ol.removeChild(li)
+      if order is 'ascent'
+        bWin = -1
+        aWin = 1
+      else
+        bWin = 1
+        aWin = -1
+      stringCompFunc = (a, b, key = 'name') ->
+        if a.dataset[key] < b.dataset[key]
+          return bWin
+        if a.dataset[key] > b.dataset[key]
+          return aWin
+        return 0
+      numberCompFunc = (a, b, key = 'name') ->
+        return (a.dataset[key] - b.dataset[key]) * aWin
+      if key is 'name'
+        ar.sort (a, b) ->
+          stringCompFunc(a, b, key)
+      else
+        ar.sort (a, b) ->
+          if (res = numberCompFunc(a, b, key)) == 0
+            res = stringCompFunc(a, b, 'name')
+          res
+      for li in ar
+        ol.appendChild(li)
+      ar = null
