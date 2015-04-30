@@ -23,14 +23,20 @@ module.exports = TreeViewFinder =
       type: 'boolean'
       default: true
       title: 'Enable debug information from file-info.coffee'
+    debugHistory:
+      type: 'boolean'
+      default: true
+      title: 'Enable debug information from history'
 
   subscriptions: null
   treeView: null
   visible: false
   xorhandler: null
   isFit: false
+  history: null
 
   activate: (@state) ->
+    @history = new history
     @finderTool = new FinderTool()
     @fileInfo = new FileInfo()
     @updateDebugFlags()
@@ -38,6 +44,7 @@ module.exports = TreeViewFinder =
 
     @subscriptions = new CompositeDisposable
 
+    @history.initialize()
     @finderTool.initialize(this)
     @fileInfo.initialize()
 
@@ -53,6 +60,8 @@ module.exports = TreeViewFinder =
     @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFinderTool', =>
       @updateDebugFlags()
     @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugFileInfo', =>
+      @updateDebugFlags()
+    @subscriptions.add atom.config.onDidChange 'tree-view-finder.debugHistory', =>
       @updateDebugFlags()
 
     @subscriptions.add atom.config.onDidChange 'tree-view-finder.entireWindow', =>
@@ -143,10 +152,42 @@ module.exports = TreeViewFinder =
       ,
       (e) =>
         console.log 'tree-view-finder: double click!', e, e.currentTarget.classList if @debug
-        if e.currentTarget.classList.contains('directory')
-          console.log 'tree-view-finder: double click: directory' if @debug
+        if e.currentTarget.classList.contains('directory') and
+           not e.currentTarget.classList.contains('project-root')
           console.log 'tree-view-finder: cd ' + e.target.dataset.path if @debug
-          atom.project.setPaths [e.target.dataset.path]
+          targetPath = e.target.dataset.path
+          oldPaths = atom.project.getPaths()
+          p = e.target
+          while not p.classList.contains('tree-view')
+            if name = p.querySelector(':scope > div > span.name')
+              if @debug
+                console.log 'tree-view-finder:', p.tagName, name.dataset.path
+            targetProject = p
+            p = p.parentNode
+          # p is ol.tree-view
+          if p.children.length != oldPaths.length
+            console.log 'ERROR:',
+              'num of projects =', p.children.length, 
+              ', num of nodes =', oldPaths.length if @debug
+          i = 0
+          newPaths = []
+          for root in p.children
+            if name = p.children[i].querySelector(':scope > div > span.name')
+              if root is targetProject
+                if @debug
+                  console.log 'tree-view-finder:', i+':', name.dataset.path, 
+                    '==> ' + targetPath
+                newPaths.push targetPath
+              else
+                if @debug
+                  console.log 'tree-view-finder:', i+':', name.dataset.path
+                newPaths.push oldPaths[i]
+            i++
+          console.log 'tree-view-finder:' if @debug
+          console.log '  old:', oldPaths if @debug
+          console.log '  new:', newPaths if @debug
+          @history.push newPaths
+          @finderTool.updateButtonStatus()
         else if e.currentTarget.classList.contains('file')
           console.log 'tree-view-finder: double click: file' if @debug
           @openUri(e.target.dataset.path)
@@ -170,9 +211,28 @@ module.exports = TreeViewFinder =
         @xorhandler(e)
 
   updateRoots: ->
-    console.log 'tree-view-finder: updateRoots' if @debug
-    for projectPath in atom.project.getPaths()
-      console.log "updateRoots: " + path.basename(projectPath) if @debug
+    oldPaths = @history.getCurrentPaths()
+    newPaths = atom.project.getPaths()
+    console.log 'tree-view-finder: updateRoots: ', oldPaths, newPaths if @debug
+    oldi = newi = 0
+    while oldi < oldPaths.length or newi < newPaths.length
+      # console.log "updateRoots: ", oldi, oldPaths[oldi], newi, newPaths[newi]
+      if oldPaths[oldi] isnt newPaths[newi]
+        if oldPaths[oldi]
+          if @debug
+            console.log 'tree-view-finder: updateRoots:', 
+              'REMOVE project folder:', oldi + ': ' + oldPaths[oldi]
+          @history.removePath oldi
+          newi--
+        else
+          if @debug
+            console.log 'tree-view-finder: updateRoots:',
+              'ADD project folder:', newPaths[newi]
+          @history.addPath newPaths[newi]
+          oldi--
+        @finderTool.updateButtonStatus()
+      oldi++
+      newi++
     @fileInfo.update()
 
   openUri: (uri) ->
@@ -193,3 +253,74 @@ module.exports = TreeViewFinder =
       @debug = atom.config.get('tree-view-finder.debugTreeViewFinder')
       @fileInfo.debug = atom.config.get('tree-view-finder.debugFileInfo')
       @finderTool.debug = atom.config.get('tree-view-finder.debugFinderTool')
+      @history.debug = atom.config.get('tree-view-finder.debugHistory')
+
+history = ->
+  index: 0
+  stack: []
+  debug: false
+
+  initialize: ->
+    @stack.push atom.project.getPaths()
+    console.log 'tree-view-finder: history.initialize:' if @debug
+    @printStatus '  stack:' if @debug
+
+  push: (paths) ->
+    console.log 'tree-view-finder: history.push:' if @debug
+    @printStatus '  stack:' if @debug
+    @stack.length = @index + 1  # truncate forward history
+    @stack.push paths
+    @index = @stack.length - 1
+    atom.project.setPaths paths
+    @printStatus '     ==>' if @debug
+
+  canBack: ->
+    return 0 < @index
+  back: ->
+    console.log 'tree-view-finder: history.back:' if @debug
+    @printStatus '  stack:' if @debug
+    if @canBack()
+      @index--
+      atom.project.setPaths @stack[@index]
+      @printStatus '     ==>' if @debug
+
+  canForw: ->
+    return @index < @stack.length - 1
+  forw: ->
+    console.log 'tree-view-finder: history.forw:' if @debug
+    @printStatus '  stack:' if @debug
+    if @canForw()
+      @index++
+      atom.project.setPaths @stack[@index]
+      @printStatus '     ==>' if @debug
+
+  canGoHome: ->
+    return 0 < @index
+  goHome: ->
+    console.log 'tree-view-finder: history.goHome:' if @debug
+    @printStatus '  stack:' if @debug
+    if @canGoHome()
+      @index = 0
+      atom.project.setPaths @stack[@index]
+      @printStatus '     ==>' if @debug
+
+  addPath: (path) ->
+    console.log 'tree-view-finder: history.addPath:' if @debug
+    @printStatus '  stack:' if @debug
+    for paths in @stack
+      paths.push(path)
+    @printStatus '     ==>' if @debug
+
+  removePath: (idx) ->
+    console.log 'tree-view-finder: history.removePath:' if @debug
+    @printStatus '  stack:' if @debug
+    for paths in @stack
+      paths.splice(idx, 1)
+    @printStatus '     ==>' if @debug
+
+  getCurrentPaths: ->
+    return @stack[@index].slice(0)  # return clone of the array
+
+  printStatus: (header) ->
+    console.log header,
+      'length =', @stack.length, ', index=', @index, ', @stack =', @stack

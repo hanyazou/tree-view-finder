@@ -27,10 +27,18 @@ class FinderTool extends HTMLElement
     console.log "finder-tool: initialize", treeViewFinder if @debug
     @treeViewFinder = treeViewFinder
     @subscriptions = new CompositeDisposable
+    @updateButtonStatus()
 
     @subscriptions.add @subscribeTo @toolBar, '.btn',
       'click': (e) =>
         console.log "finder-tool: click:", e.target.id, e if @debug
+        if e.target == @backBtn
+          @treeViewFinder.history.back()
+        if e.target == @forwBtn
+          @treeViewFinder.history.forw()
+        if e.target == @homeBtn
+          @treeViewFinder.history.goHome()
+        @updateButtonStatus()
 
     state = treeViewFinder?.state?.finderTool
     if state
@@ -69,7 +77,7 @@ class FinderTool extends HTMLElement
           originalWidth: target.offsetWidth,
           totalWidth: @toolBar.offsetWidth
         } 
-    update = (e) =>
+    updateButtonWidths = (e) =>
       d = e.clientX - drag.x
       if drag.originalWidth + d < 40
         d = 40 - drag.originalWidth
@@ -78,15 +86,34 @@ class FinderTool extends HTMLElement
 
     document.onmousemove = (e) =>
       if drag
-        update(e)
+        updateButtonWidths(e)
         @updateFileInfo()
 
     document.onmouseup = (e) =>
       if drag
-        update(e)
+        updateButtonWidths(e)
         console.log "finder-tool: ", drag.target.id, drag.target.offsetLeft+ drag.target.offsetWidth if @debug
         @updateFileInfo()
         drag = null
+
+  updateButtonStatus: ->
+    if @debug
+      console.log 'finder-tool: updateButtonStatus:',
+        @treeViewFinder.history.canBack(),
+        @treeViewFinder.history.canForw(),
+        @treeViewFinder.history.canGoHome()
+    if @treeViewFinder.history.canBack()
+      @backBtn.classList.remove('disable')
+    else
+      @backBtn.classList.add('disable')
+    if @treeViewFinder.history.canForw()
+      @forwBtn.classList.remove('disable')
+    else
+      @forwBtn.classList.add('disable')
+    if @treeViewFinder.history.canGoHome()
+      @homeBtn.classList.remove('disable')
+    else
+      @homeBtn.classList.add('disable')
 
   serialize: ->
     return {} if not @attached
