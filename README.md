@@ -1,5 +1,14 @@
 # tree-view-finder package
 
-Mac OS finder like file browser package for ATOM editor.
+Alter the TreeView to Mac OS finder like.
 
-![A screenshot of your package](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
+Press ctrl-alt-o to toggle this function or choose 'Toggle tree-view-finder' in
+context menu on the TreeView.
+
+ * Display size and date in the TreeView.
+ * Sort entries by name, size or date.
+ * Enter folder or open file with external program by double click.
+
+![A screenshot 2](https://raw.githubusercontent.com/hanyazou/tree-view-finder/master/images/ScreenShot-0001.png)
+
+![A screenshot](https://raw.githubusercontent.com/hanyazou/tree-view-finder/master/images/ScreenShot-0000.png)

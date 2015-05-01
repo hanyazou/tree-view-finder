@@ -2,7 +2,7 @@
   "name": "tree-view-finder",
   "main": "./lib/tree-view-finder",
   "version": "0.1.0",
-  "description": "A short description of your package",
+  "description": "Alter the TreeView to Mac OS finder like.",
   "activationCommands": {
     "atom-workspace": "tree-view-finder:toggle"
   },
