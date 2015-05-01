@@ -112,6 +112,7 @@ module.exports = TreeViewFinder =
     @fileInfo.hide()
     @finderTool.detach()
     @unfitWidth()
+    @unhookTreeViewEvents()
 
   fitWidth: ->
     console.log 'tree-view-finder: fitWidth...' if @debug
@@ -210,6 +211,16 @@ module.exports = TreeViewFinder =
             @fileInfo.update()
             return
         @xorhandler(e)
+
+  unhookTreeViewEvents: ->
+    console.log 'tree-view-finder: UnhookTreeViewEvents' if @debug
+    @treeView.off 'click'
+    #
+    # XXX, this code was came from TreeView.handleEvents
+    #
+    @treeView.on 'click', '.entry', (e) =>
+      return if e.target.classList.contains('entries')
+      @treeView.entryClicked(e) unless e.shiftKey or e.metaKey or e.ctrlKey
 
   updateRoots: ->
     oldPaths = @history.getCurrentPaths()
