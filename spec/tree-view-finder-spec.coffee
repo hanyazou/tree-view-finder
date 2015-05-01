@@ -11,12 +11,14 @@ describe "TreeViewFinder", ->
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
     activationPromise = atom.packages.activatePackage('tree-view-finder')
+    waitsForPromise ->
+      atom.packages.activatePackage('tree-view')
 
   describe "when the tree-view-finder:toggle event is triggered", ->
-    it "hides and shows the modal panel", ->
+    it "hides and shows the tool bar", ->
       # Before the activation event the view is not on the DOM, and no panel
       # has been created
-      expect(workspaceElement.querySelector('.tree-view-finder')).not.toExist()
+      expect(workspaceElement.querySelector('.tree-view-finder-tool')).not.toExist()
 
       # This is an activation event, triggering it will cause the package to be
       # activated.
@@ -26,37 +28,13 @@ describe "TreeViewFinder", ->
         activationPromise
 
       runs ->
-        expect(workspaceElement.querySelector('.tree-view-finder')).toExist()
+        expect(workspaceElement.querySelector('.tree-view-finder-tool')).toExist()
 
-        treeViewFinderElement = workspaceElement.querySelector('.tree-view-finder')
-        expect(treeViewFinderElement).toExist()
+        finderTool = workspaceElement.querySelector('tree-view-finder-tool')
+        expect(finderTool).toExist()
+        treeViewFinder = finderTool.treeViewFinder
+        expect(treeViewFinder).not.toBe null
 
-        treeViewFinderPanel = atom.workspace.panelForItem(treeViewFinderElement)
-        expect(treeViewFinderPanel.isVisible()).toBe true
+        expect(treeViewFinder.visible).toBe true
         atom.commands.dispatch workspaceElement, 'tree-view-finder:toggle'
-        expect(treeViewFinderPanel.isVisible()).toBe false
-
-    it "hides and shows the view", ->
-      # This test shows you an integration test testing at the view level.
-
-      # Attaching the workspaceElement to the DOM is required to allow the
-      # `toBeVisible()` matchers to work. Anything testing visibility or focus
-      # requires that the workspaceElement is on the DOM. Tests that attach the
-      # workspaceElement to the DOM are generally slower than those off DOM.
-      jasmine.attachToDOM(workspaceElement)
-
-      expect(workspaceElement.querySelector('.tree-view-finder')).not.toExist()
-
-      # This is an activation event, triggering it causes the package to be
-      # activated.
-      atom.commands.dispatch workspaceElement, 'tree-view-finder:toggle'
-
-      waitsForPromise ->
-        activationPromise
-
-      runs ->
-        # Now we can test for view visibility
-        treeViewFinderElement = workspaceElement.querySelector('.tree-view-finder')
-        expect(treeViewFinderElement).toBeVisible()
-        atom.commands.dispatch workspaceElement, 'tree-view-finder:toggle'
-        expect(treeViewFinderElement).not.toBeVisible()
+        expect(treeViewFinder.visible).toBe false
