@@ -1,10 +1,11 @@
 # See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
 'context-menu':
-  'atom-text-editor': [
+  '.tree-view': [
     {
       'label': 'Toggle tree-view-finder'
       'command': 'tree-view-finder:toggle'
     }
+    {'type': 'separator'}
   ]
 'menu': [
   {
