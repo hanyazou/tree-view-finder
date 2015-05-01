@@ -9,23 +9,23 @@ module.exports = TreeViewFinder =
   config:
     entireWindow:
       type: 'boolean'
-      default: true
+      default: false
       title: 'Use entire window'
     debugTreeViewFinder:
       type: 'boolean'
-      default: true
+      default: false
       title: 'Enable debug information from tree-view-finder.coffee'
     debugFinderTool:
       type: 'boolean'
-      default: true
+      default: false
       title: 'Enable debug information from finder-tool.coffee'
     debugFileInfo:
       type: 'boolean'
-      default: true
+      default: false
       title: 'Enable debug information from file-info.coffee'
     debugHistory:
       type: 'boolean'
-      default: true
+      default: false
       title: 'Enable debug information from history'
 
   subscriptions: null
