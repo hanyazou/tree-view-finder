@@ -260,8 +260,9 @@ module.exports = TreeViewFinder =
       return if e.target.classList.contains('entries')
       @treeView.entryClicked(e) unless e.shiftKey or e.metaKey or e.ctrlKey
 
-    @subscriptionOnPanelDestroy.dispose()
-    @subscriptionOnPanelDestroy = null
+    if @subscriptionOnPanelDestroy
+      @subscriptionOnPanelDestroy.dispose()
+      @subscriptionOnPanelDestroy = null
 
   updateRoots: ->
     oldPaths = @history.getCurrentPaths()
