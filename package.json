@@ -3,9 +3,6 @@
   "main": "./lib/tree-view-finder",
   "version": "0.1.1",
   "description": "Alter the TreeView to Mac OS finder like.",
-  "activationCommands": {
-    "atom-workspace": "tree-view-finder:toggle"
-  },
   "repository": "https://github.com/hanyazou/tree-view-finder",
   "license": "MIT",
   "engines": {

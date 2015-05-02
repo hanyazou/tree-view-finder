@@ -1,3 +1,4 @@
+$ = require 'jquery'
 FinderTool = require './finder-tool'
 {CompositeDisposable} = require 'atom'
 FileInfo = require './file-info'
@@ -34,13 +35,17 @@ module.exports = TreeViewFinder =
   xorhandler: null
   isFit: false
   history: null
+  subscriptionOnPanelDestroy: null
 
   activate: (@state) ->
     @history = new history
     @finderTool = new FinderTool()
     @fileInfo = new FileInfo()
     @updateDebugFlags()
-    console.log 'tree-view-finder: activate' if @debug
+    if @debug
+      console.log 'tree-view-finder: activate:',
+        'should attach =', @state.shouldAttach
+    @state.shouldAttach ?= false
 
     @subscriptions = new CompositeDisposable
 
@@ -71,23 +76,47 @@ module.exports = TreeViewFinder =
       console.log 'Window innerWidth:', window.innerWidth if @debug
       @updateWidth()
 
+    atom.packages.activatePackage('tree-view').then (treeViewPkg) =>
+      @treeView = treeViewPkg.mainModule.createView()
+      if @debug
+        console.log 'tree-view-finder: attaching on activation: should attach =',
+          @state.shouldAttach
+      @attach() if @state.shouldAttach
+    $('body').on 'focus', '.tree-view', =>
+      if @debug
+        console.log 'tree-view-finder: .tree-view got focus: should attach =',
+          @state.shouldAttach
+      @attach() if @state.shouldAttach
+
   deactivate: ->
     console.log 'tree-view-finder: deactivate' if @debug
-    @hide()
+    @_hide()
     @subscriptions.dispose()
     @finderTool.destroy()
 
   serialize: ->
-    console.log 'tree-view-finder: serialize' if @debug
+    if @debug
+      console.log 'tree-view-finder: serialize:',
+        'should attach =', @state.shouldAttach
     finderTool: @finderTool.serialize()
+    shouldAttach: @state.shouldAttach
 
   toggle: ->
+    return if not @treeView.isVisible()
     if @visible
-      @hide();
+      @detach()
     else
-      @show();
+      @attach()
 
-  show: ->
+  attach: ->
+    @state.shouldAttach = true
+    @_show()
+
+  detach: ->
+    @state.shouldAttach = false
+    @_hide()
+
+  _show: ->
     console.log 'tree-view-finder: show()' if @debug
 
     treeViewPkg = atom.packages.getLoadedPackage('tree-view')
@@ -95,8 +124,9 @@ module.exports = TreeViewFinder =
     @treeView = treeViewPkg.mainModule.createView()
 
     # XXX, check if there is the tree-view
-    if not @treeView?.panel
-      console.log 'tree-view-finder: show(): @treeView.panel =', @treeView.panel
+    if not @treeView.isVisible()
+      console.log 'tree-view-finder: show(): @treeView.isVisiple() =',
+        @treeView.isVisible() if @debug
       return 
 
     @visible = true
@@ -106,7 +136,7 @@ module.exports = TreeViewFinder =
     @updateEntireWindowCongig()
     @hookTreeViewEvents()
 
-  hide: ->
+  _hide: ->
     console.log 'tree-view-finder: hide()' if @debug
     @visible = false
     @fileInfo.hide()
@@ -212,6 +242,14 @@ module.exports = TreeViewFinder =
             return
         @xorhandler(e)
 
+    # XXX, in case that @treeView.panel is not available. (I donno why.)
+    panel = atom.workspace.panelForItem(@treeView)
+
+    # hook destroy event of the panel to detect deatching the tree view.
+    @subscriptionOnPanelDestroy = panel.onDidDestroy =>
+      console.log 'tree-view-finder: treeView.panel was destroyed.' if @debug
+      @_hide()
+
   unhookTreeViewEvents: ->
     console.log 'tree-view-finder: UnhookTreeViewEvents' if @debug
     @treeView.off 'click'
@@ -221,6 +259,9 @@ module.exports = TreeViewFinder =
     @treeView.on 'click', '.entry', (e) =>
       return if e.target.classList.contains('entries')
       @treeView.entryClicked(e) unless e.shiftKey or e.metaKey or e.ctrlKey
+
+    @subscriptionOnPanelDestroy.dispose()
+    @subscriptionOnPanelDestroy = null
 
   updateRoots: ->
     oldPaths = @history.getCurrentPaths()

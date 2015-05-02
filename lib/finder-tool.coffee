@@ -171,7 +171,6 @@ class FinderTool extends HTMLElement
       label.classList.add('finder-tool-btn-label-' + @sortOrder)
 
   serialize: ->
-    return {} if not @attached
     nameWidth: @nameWidth
     sizeWidth: @sizeWidth
     mdateWidth: @mdateWidth
