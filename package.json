@@ -1,7 +1,7 @@
 {
   "name": "tree-view-finder",
   "main": "./lib/tree-view-finder",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Alter the TreeView to Mac OS finder like.",
   "repository": "https://github.com/hanyazou/tree-view-finder",
   "license": "MIT",
